@@ -20,6 +20,7 @@ spec:
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
+          runAsNonRoot: true
         ports:
         - containerPort: 5050
         command: ["/bin/bash", "-c"]
