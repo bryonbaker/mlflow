@@ -16,7 +16,6 @@ USER mlflow
 WORKDIR $HOME
 RUN pip3 install mlflow
 
-EXPOSE 5000
+EXPOSE 5500
 
-CMD mlflow doctor && \
-    mlflow server
+CMD ["mlflow", "server", "--host", "0.0.0.0", "--port", "5500"]
