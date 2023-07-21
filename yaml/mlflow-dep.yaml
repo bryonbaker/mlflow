@@ -40,3 +40,16 @@ spec:
     - protocol: TCP
       port: 5500
       targetPort: 5500
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: mlflow
+spec:
+  port:
+    targetPort: 5500
+  to:
+    kind: Service
+    name: mlflow
+    weight: 100
+  wildcardPolicy: None
