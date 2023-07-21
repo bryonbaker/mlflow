@@ -1,20 +1,28 @@
 FROM registry.redhat.io/ubi8/ubi:latest
 
-RUN dnf install -y python3.9 && \
-    pip3 install --upgrade pip
-
 ENV HOME=/home/mlflow
 ENV USER=mlflow
 ENV GROUP=mlflow
+ENV APPS=/mlflow
 ENV PATH=$HOME/.local/bin:${PATH}
 
-RUN groupadd -r mlflow && \
-    useradd -r -m -g mlflow mlflow
+RUN dnf install -y python3.9 && \
+    pip3 install --upgrade pip
 
-USER mlflow
-
+# Create a user but do not create a home directory
+# Set the work directory to be in the root group
+RUN useradd -r -m -g root $USER && \
+    chgrp -R 0 $HOME && \
+    chmod -R g+rwX $HOME
 WORKDIR $HOME
+
+USER $USER
 RUN pip3 install mlflow
+
+USER root
+RUN chmod -R g+rwX $HOME
+
+USER $USER
 
 EXPOSE 5500
 

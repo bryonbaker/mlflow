@@ -21,10 +21,13 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
         ports:
         - containerPort: 5050
         command: ["/bin/bash", "-c"]
-        args: ["whoami && ls -las && echo $PATH && $HOME/.local/bin/mlflow doctor"]
+        args: ["mlflow server --host 0.0.0.0 --port 5500"]
+        # args: ["whoami && echo $PATH && sleep 120"]
 ---
 apiVersion: v1
 kind: Service
@@ -35,5 +38,5 @@ spec:
     app: mlflow
   ports:
     - protocol: TCP
-      port: 8080
-      targetPort: 5050
+      port: 5500
+      targetPort: 5500
