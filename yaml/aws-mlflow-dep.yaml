@@ -1,0 +1,80 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: mlflow
+  labels:
+    app: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mlflow-pvc
+      containers:
+        - name: mlflow
+          command:
+            - /bin/bash
+            - '-c'
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 5050
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: data
+              mountPath: /mlruns
+          image: 'quay.io/bryonbaker/mlflow:latest'
+          args:
+            - mlflow server --host 0.0.0.0 --port 5500
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mlflow-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: gp2   # You may need to adjust this based on the storage classes enabled on the cluster
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow
+spec:
+  selector:
+    app: mlflow
+  ports:
+    - protocol: TCP
+      port: 5500
+      targetPort: 5500
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: mlflow
+spec:
+  port:
+    targetPort: 5500
+  to:
+    kind: Service
+    name: mlflow
+    weight: 100
+  wildcardPolicy: None
